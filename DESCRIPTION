@@ -1,0 +1,10 @@
+Package: GreedyMiner
+Type: Package
+Title: Automated Data Mining
+Version: 0.1.0
+Author: Damian Panas
+Maintainer: Damian Panas <damian@panas.com>
+Description: Mine everything possible. 
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
