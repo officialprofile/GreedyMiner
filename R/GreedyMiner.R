@@ -1,57 +1,92 @@
-# qual.na.action = 'drop', 'mode', 'random', 'ignore'
+# qual.na.action = 'drop', 'mode', 'ignore'
 # quant.na.action = 'drop', 'mean', 'median' 'ignore'
 # all.types; 0 - qualitative, 1 - quantitative, e.g. c(0,1,1,1,0,0,1)
 # dependent.type; 0 - qualitative, 1 - quantitative
-# skip.vars - names of columns to exclude from analysis
 
 GreedyMiner <- function(dataset,
                         dependent.vars = NULL,
                         dependent.type = 0,
-                        all.types,
-                        skip.vars = NULL,
-                        qual.na.action = 'drop',
-                        quant.na.action = 'drop') {
+                        all.types = NULL,
+                        qual.na.action = 'mean',
+                        quant.na.action = 'mode') {
 
   cols <- colnames(dataset)
-  ql   <- cols[which(cols == 0)]
-  qt   <- cols[which(cols == 1)]
 
-  # Update dataset by excluding needless columns
-  dataset <- dataset[, setdiff(cols, skip.vars)]
-  cols    <- colnames(dataset)
-  ql      <- cols[which(cols == 0)]
-  qt      <- cols[which(cols == 1)]
-
-  #
-  if (quant.na.action != 'ignore'){
-    for (col in cols){
-      empty_rows <- is.na(dataset$col)
-      if (sum(empty_rows) > 0){ # if column is not complete
-        dataset[empty_rows, col] <- ifelse(quant.na.action == 'mean',
-                                           mean(dataset$col), median(dataset$col))
+  # Determine types of columns
+  if (is.null(all.types)){
+    print('Argument all.types is not specified. Types are going to be determined automatically')
+    auto_types <- sapply(dataset, typeof)
+    ql <- rep(0, ncol(dataset))
+    qt <- rep(0, ncol(dataset))
+    for (i in 1:ncol(dataset)){
+      if (auto_types[i] %in% c('integer', 'double')){
+        qt[i] <- 1
       }
+      if (auto_types[i] %in% c('character', 'factor')){
+        ql[i] <- 1
+      }
+    }
+    qt <- cols[qt]
+    ql <- cols[ql]
+  }
+  else {
+    ql   <- cols[which(all.types == 0)]
+    qt   <- cols[which(all.types == 1)]
+  }
 
+  # Managing NAs
+  if (quant.na.action == 'ignore' || qual.na.action == 'ignore'){
+    print('Ignoring NAs. This option may return errors.')
+  }
+  if (quant.na.action != 'ignore'){
+    for (col in qt){
+      empty_rows <- is.na(dataset$col)
+      if (sum(empty_rows) > 0){
+        if (quant.na.action == 'mean'){
+          dataset[empty_rows, col] <- mean(dataset$col)
+        }
+        if (quant.na.action == 'median'){
+          dataset[empty_rows, col] <- median(dataset$col)
+        }
+        if (quant.na.action == 'drop'){
+          dataset <- dataset[!is.na(dataset$col), ]
+        }
+      }
     }
   }
 
-  if (dependent.type == 0){ # qualitative dependency
-    if (length(unique(dataset$Sex))>3){
-
+  if (qual.na.action != 'ignore'){
+    for (col in ql){
+      empty_rows <- is.na(dataset$col)
+      if (sum(empty_rows) > 0){
+        if (quanl.na.action == 'mode'){
+          dataset[empty_rows, col] <- names(sort(table(dataset$col),
+                                                 decreasing = TRUE)[1])
+        }
+        if (quanl.na.action == 'drop'){
+          dataset <- dataset[!is.na(dataset$col), ]
+        }
+      }
     }
-    else{ # ANOVA
-
-    }
-
   }
 
-  else {  # quantitative dependency
-
+  # Converting qualitative variables to factors
+  for (col in ql){
+    dataset$col <- as.factor(dataset$col)
   }
 
-
+  return(dataset)
 }
+
+tit = GreedyMiner(dataset, all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0))
+
+tit = GreedyMiner(dataset)
 
 #all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0)
 #dataset = titanic_train
 
+for (i in colnames(dataset)){
+  print(class(dataset$i))
+}
 
+class(dataset$i)
