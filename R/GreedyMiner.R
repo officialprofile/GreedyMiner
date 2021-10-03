@@ -14,7 +14,7 @@ GreedyMiner <- function(dataset,
 
   # Determine types of columns
   if (is.null(all.types)){
-    print('Argument all.types is not specified. Types are going to be determined automatically')
+    print('Argument all.types is not specified. Types will be determined automatically')
     auto_types <- sapply(dataset, typeof)
     ql <- rep(0, ncol(dataset))
     qt <- rep(0, ncol(dataset))
@@ -26,8 +26,8 @@ GreedyMiner <- function(dataset,
         ql[i] <- 1
       }
     }
-    qt <- cols[qt]
-    ql <- cols[ql]
+    qt <- cols[which(qt != 0)]
+    ql <- cols[which(ql != 0)]
   }
   else {
     ql   <- cols[which(all.types == 0)]
@@ -35,52 +35,59 @@ GreedyMiner <- function(dataset,
   }
 
   # Managing NAs
-  if (quant.na.action == 'ignore' || qual.na.action == 'ignore'){
-    print('Ignoring NAs. This option may return errors.')
-  }
-  if (quant.na.action != 'ignore'){
-    for (col in qt){
-      empty_rows <- is.na(dataset$col)
-      if (sum(empty_rows) > 0){
-        if (quant.na.action == 'mean'){
-          dataset[empty_rows, col] <- mean(dataset$col)
-        }
-        if (quant.na.action == 'median'){
-          dataset[empty_rows, col] <- median(dataset$col)
-        }
-        if (quant.na.action == 'drop'){
-          dataset <- dataset[!is.na(dataset$col), ]
-        }
+  # if (quant.na.action == 'ignore' || qual.na.action == 'ignore'){
+  #   print('Ignoring NAs. This option may return errors.')
+  # }
+  # if (quant.na.action != 'ignore'){
+  #   for (col in qt){
+  #     empty_rows <- is.na(dataset$col)
+  #     if (sum(empty_rows) > 0){
+  #       if (quant.na.action == 'mean'){
+  #         dataset[empty_rows, col] <- mean(dataset$col)
+  #       }
+  #       if (quant.na.action == 'median'){
+  #         dataset[empty_rows, col] <- median(dataset$col)
+  #       }
+  #       if (quant.na.action == 'drop'){
+  #         dataset <- dataset[!is.na(dataset$col), ]
+  #       }
+  #     }
+  #   }
+  # }
+  #
+  # if (qual.na.action != 'ignore'){
+  #   for (col in ql){
+  #     empty_rows <- is.na(dataset$col)
+  #     if (sum(empty_rows) > 0){
+  #       if (quanl.na.action == 'mode'){
+  #         dataset[empty_rows, col] <- names(sort(table(dataset$col),
+  #                                                decreasing = TRUE)[1])
+  #       }
+  #       if (quanl.na.action == 'drop'){
+  #         dataset <- dataset[!is.na(dataset$col), ]
+  #       }
+  #     }
+  #   }
+  # }
+
+  # return(dataset)
+
+  # Check correlation for every quantitative variable
+
+  for (qt1 in qt){
+    for (qt2 in qt){
+      if (qt1 != qt2){
+        print(cor(dataset[,qt1], dataset[,qt2]))
       }
     }
   }
 
-  if (qual.na.action != 'ignore'){
-    for (col in ql){
-      empty_rows <- is.na(dataset$col)
-      if (sum(empty_rows) > 0){
-        if (quanl.na.action == 'mode'){
-          dataset[empty_rows, col] <- names(sort(table(dataset$col),
-                                                 decreasing = TRUE)[1])
-        }
-        if (quanl.na.action == 'drop'){
-          dataset <- dataset[!is.na(dataset$col), ]
-        }
-      }
-    }
-  }
-
-  # Converting qualitative variables to factors
-  for (col in ql){
-    dataset$col <- as.factor(dataset$col)
-  }
-
-  return(dataset)
+  return(list('qual' = ql, 'quant' = qt))
 }
 
 tit = GreedyMiner(dataset, all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0))
 
-tit = GreedyMiner(dataset)
+tit = GreedyMiner(ds)
 
 #all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0)
 #dataset = titanic_train
@@ -90,3 +97,6 @@ for (i in colnames(dataset)){
 }
 
 class(dataset$i)
+
+dataset = readxl::read_excel('Pacjenci.xlsx')
+ds = read.delim('Pacjenci.xslx')
