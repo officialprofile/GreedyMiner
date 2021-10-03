@@ -34,6 +34,11 @@ GreedyMiner <- function(dataset,
     qt   <- cols[which(all.types == 1)]
   }
 
+  # Convert qualitative variable to factor
+  for (var in ql){
+    dataset[, var] = factor(dataset[, var])
+  }
+
   # Managing NAs
   # if (quant.na.action == 'ignore' || qual.na.action == 'ignore'){
   #   print('Ignoring NAs. This option may return errors.')
@@ -70,33 +75,36 @@ GreedyMiner <- function(dataset,
   #   }
   # }
 
-  # return(dataset)
+
 
   # Check correlation for every quantitative variable
 
   for (qt1 in qt){
     for (qt2 in qt){
       if (qt1 != qt2){
-        print(cor(dataset[,qt1], dataset[,qt2]))
+        ct <- cor.test(dataset[,qt1], dataset[,qt2])
+        if (ct$p.value < 0.05){
+          print(paste('Correlation: ', qt1, qt2, ct$estimate))
+        }
       }
     }
   }
 
-  return(list('qual' = ql, 'quant' = qt))
+  for (ql_var in ql){
+    for (qt_var in qt){
+      anova_test <- aov(as.formula(paste(qt_var, ql_var, sep = '~')), data = dataset)
+      anova_summary <- summary(anova_test)
+      p_vals <- na.omit(anova_summary[[1]]$`Pr(>F)`)
+      if (min(p_vals) < 0.05){
+        print(paste('ANOVA: ', ql_var, qt_var, min(p_vals)))
+      }
+    }
+  }
+
 }
 
-tit = GreedyMiner(dataset, all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0))
+# tit = GreedyMiner(dataset, all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0))
+dataset = as.data.frame(readxl::read_excel('Pacjenci.xlsx'))
+GreedyMiner(dataset)
 
-tit = GreedyMiner(ds)
 
-#all.types <- c(0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0)
-#dataset = titanic_train
-
-for (i in colnames(dataset)){
-  print(class(dataset$i))
-}
-
-class(dataset$i)
-
-dataset = readxl::read_excel('Pacjenci.xlsx')
-ds = read.delim('Pacjenci.xslx')
