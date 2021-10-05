@@ -4,8 +4,8 @@
 
 GreedyMiner <- function(dataset,
                         all.types = NULL,
-                        qual.na.action = 'mean',
-                        quant.na.action = 'mode') {
+                        qual.na.action = 'mode',
+                        quant.na.action = 'mean') {
 
   cols <- colnames(dataset)
 
@@ -16,7 +16,7 @@ GreedyMiner <- function(dataset,
 
   # Determine types of the columns
   if (is.null(all.types)){
-    warning('Argument all.types is not specified. Types will be determined automatically\n')
+    warning('Argument all.types is not specified. Types will be determined automatically.')
     auto_types <- sapply(dataset, class)
     ql <- rep(0, ncol(dataset))
     qt <- rep(0, ncol(dataset))
@@ -41,43 +41,51 @@ GreedyMiner <- function(dataset,
   }
 
   # Managing NAs
-  # if (quant.na.action == 'ignore' || qual.na.action == 'ignore'){
-  #   print('Ignoring NAs. This option may return errors.')
-  # }
-  # if (quant.na.action != 'ignore'){
-  #   for (col in qt){
-  #     empty_rows <- is.na(dataset$col)
-  #     if (sum(empty_rows) > 0){
-  #       if (quant.na.action == 'mean'){
-  #         dataset[empty_rows, col] <- mean(dataset$col)
-  #       }
-  #       if (quant.na.action == 'median'){
-  #         dataset[empty_rows, col] <- median(dataset$col)
-  #       }
-  #       if (quant.na.action == 'drop'){
-  #         dataset <- dataset[!is.na(dataset$col), ]
-  #       }
-  #     }
-  #   }
-  # }
-  #
-  # if (qual.na.action != 'ignore'){
-  #   for (col in ql){
-  #     empty_rows <- is.na(dataset$col)
-  #     if (sum(empty_rows) > 0){
-  #       if (quanl.na.action == 'mode'){
-  #         dataset[empty_rows, col] <- names(sort(table(dataset$col),
-  #                                                decreasing = TRUE)[1])
-  #       }
-  #       if (quanl.na.action == 'drop'){
-  #         dataset <- dataset[!is.na(dataset$col), ]
-  #       }
-  #     }
-  #   }
-  # }
+  if (quant.na.action == 'ignore' || qual.na.action == 'ignore'){
+    warning('Ignoring NAs. This option may result in some errors.')
+  }
+  if (!quant.na.action %in% c('mean', 'median', 'drop', 'ignore')){
+    warning('quant.na.action was specified incorrectly and changed to mean.')
+    quant.na.action = 'mean'
+  }
+  if (!qual.na.action %in% c('mode', 'drop', 'ignore')){
+    warning('qual.na.action was specified incorrectly and changed to mode.')
+    qual.na.action = 'mode'
+  }
+
+  if (quant.na.action != 'ignore'){
+    for (col in qt){
+      empty_rows <- is.na(dataset[,col])
+      if (sum(empty_rows) > 0){
+        if (quant.na.action == 'mean'){
+          dataset[empty_rows, col] <- mean(dataset[-empty_rows, col])
+        }
+        if (quant.na.action == 'median'){
+          dataset[empty_rows, col] <- median(dataset[-empty_rows, col])
+        }
+        if (quant.na.action == 'drop'){
+          dataset <- dataset[!is.na(dataset[, col]), ]
+        }
+      }
+    }
+  }
+
+  if (qual.na.action != 'ignore'){
+    for (col in ql){
+      empty_rows <- is.na(dataset[,col])
+      if (sum(empty_rows) > 0){
+        if (qual.na.action == 'mode'){
+          dataset[empty_rows, col] <- names(sort(table(dataset[-empty_rows, col]),
+                                                 decreasing = TRUE)[1])
+        }
+        if (qual.na.action == 'drop'){
+          dataset <- dataset[!is.na(dataset[, col]), ]
+        }
+      }
+    }
+  }
 
   # Check correlation for every quantitative variable
-  options(warn = -1)
   for (qt1 in qt){
     for (qt2 in qt){
       if (qt1 != qt2){
@@ -96,7 +104,6 @@ GreedyMiner <- function(dataset,
       }
     }
   }
-  options(warn = getOption("warn"))
 
   # Check differences between groups
   for (ql_var in ql){
@@ -117,5 +124,8 @@ GreedyMiner <- function(dataset,
   return(results)
 }
 
-GreedyMiner(esoph)
 GreedyMiner(ToothGrowth)
+
+d = esoph
+d[1, ] = rep(NA, 5)
+GreedyMiner(d)
