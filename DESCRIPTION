@@ -1,10 +1,15 @@
 Package: GreedyMiner
 Type: Package
-Title: Automated Data Mining
-Version: 0.1.0
-Author: Damian Panas
-Maintainer: Damian Panas <damian@panas.com>
-Description: Mine everything possible. 
+Title: Structured Discovery of Dependencies in Tabular Data
+Version: 0.2.0
+Authors@R: person("Damian", "Panas", email = "damian@panas.com", role = c("aut", "cre"))
+Description: Screens mixed-type data for pairwise and joint dependence,
+    predictive information, conditional associations, interactions and
+    subgroup rules. Separates discovery from confirmation, tracks the
+    search budget, adjusts multiple tests and reports diagnostics.
+    Base R implementations are supplemented by optional model backends.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
+Depends: R (>= 4.1.0)
+Imports: stats, utils, graphics, parallel, splines, tools, methods
+Suggests: mgcv, glmnet, ranger, partykit, arules, energy
